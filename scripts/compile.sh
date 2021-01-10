@@ -72,6 +72,7 @@ compile_module()
 ###############################################################################
 
 source "$(get_script_dir)/common.sh"
+build_type=${1:-all} # default to building all packages
 
 echo ""
 echo "------------------------------------------------------------------------"
@@ -81,15 +82,20 @@ echo ""
 
 # this is needed because with sudo the PATH apparently doesn't contain it. Idk why
 # Hisilicon Linux, Cross-Toolchain PATH
-export PATH="/home/user/x-tools/arm-sonoff-linux-uclibcgnueabi/bin:$PATH"
+export PATH="$(get_script_dir)/../toolchain/arm-sonoff-linux-uclibcgnueabi/bin:$PATH"
 
-rm -rf "$(get_script_dir)/../build/"
+if [[ ${build_type} == 'all' ]]; then
+    rm -rf "$(get_script_dir)/../build/"
+fi
 
 mkdir -p "$(get_script_dir)/../build/sonoff-hack"
 
 SRC_DIR=$(get_script_dir)/../src
 
 for SUB_DIR in $SRC_DIR/* ; do
+    if [[ ${build_type} != 'all' && ${SUB_DIR} != *"${build_type}"* ]]; then
+        continue
+    fi
     if [ -d ${SUB_DIR} ]; then # Will not run if no directories are available
         compile_module $(normalize_path "$SUB_DIR") || exit 1
     fi
